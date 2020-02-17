@@ -1,0 +1,52 @@
+﻿@model IEnumerable<domain.EcommShipping.Itrellis.ProductForUI>
+@{
+	ViewData["Title"] = "Home Page";
+}
+<div>
+	<p style="font-size: 26px;font-weight: bold;">All Products Shipping dates are calculated based on: @ViewData["shipDate"]</p>
+	<p>
+		<input type="date" id="shipDate" value="@DateTime.Parse(@ViewData["shipDate"].ToString()).ToString("yyyy-MM-dd")" />
+		<input type="button" id="btnUpdateShippingdate" value="Update Shipping Dates" onclick="GoGetDataFromMVC(); return false;" />
+	</p>
+	
+</div>
+<table class="table">
+	<thead>
+		<tr>
+			<th>
+				@Html.DisplayNameFor(model => model.ProductName)
+			</th>
+			<th>
+				@Html.DisplayNameFor(model => model.AvailableQuantity)
+			</th>
+			<th>
+				@Html.DisplayNameFor(model => model.ShippingDate)
+			</th>
+			<th></th>
+		</tr>
+	</thead>
+	<tbody>
+		@foreach (var item in Model)
+		{
+			<tr>
+				<td>
+					@Html.DisplayFor(modelItem => item.ProductName)
+				</td>
+				<td>
+					@Html.DisplayFor(modelItem => item.AvailableQuantity)
+				</td>
+				<td>
+					@Html.DisplayFor(modelItem => item.ShippingDate)
+				</td>
+			</tr>
+		}
+	</tbody>
+</table>
+<script type="text/javascript">
+	function GoGetDataFromMVC() {
+		var shipDate = $('#shipDate').val();
+		var url = '@Url.Action("GetProductsWithDate", "Home")';
+		url = url + '?shipDate=' + shipDate;
+		location.href = url;
+	}
+</script>
