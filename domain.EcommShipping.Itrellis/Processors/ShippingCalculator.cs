@@ -12,26 +12,13 @@ namespace domain.EcommShipping.Itrellis.Processors
 		public async Task<DateTime> GetShippingDate(int maxDaysToShip, bool doesShipOnWeekends)
 		{
 			DateTime shipDateToDisplay = DateTime.Now;
-			//TO INCLUDE THE CURRENT DAY AS THE FIRST SHIPPING DAY WE HAVE TO DEDUCT A DAY FROM THE MAX DAYS TO SHIP.
-			maxDaysToShip--;
 			await Task.Run(() =>
 			{
-				if (doesShipOnWeekends)
-				{
-					DateTime startDate = DateTime.Now;
-					DateTime expectedEndDate = startDate.AddDays(maxDaysToShip);
-					shipDateToDisplay = expectedEndDate;
-				}
-				else
-				{
-					DateTime startDate = DateTime.Now;
-					DateTime expectedEndDate = startDate.AddDays(maxDaysToShip);
-					while (expectedEndDate.DayOfWeek == DayOfWeek.Saturday || expectedEndDate.DayOfWeek == DayOfWeek.Sunday)
-					{
-						expectedEndDate = expectedEndDate.AddDays(1);
-					}
-					shipDateToDisplay = expectedEndDate;
-				}
+				DateTime startDate = GetStartingShippingDate(DateTime.Now, doesShipOnWeekends);
+				//TO INCLUDE THE CURRENT DAY AS THE FIRST SHIPPING DAY WE HAVE TO DEDUCT A DAY FROM THE MAX DAYS TO SHIP.
+				maxDaysToShip--;
+				DateTime expectedEndDate = startDate.AddDays(maxDaysToShip);
+				shipDateToDisplay = GetWorkingDays(startDate, expectedEndDate, doesShipOnWeekends);
 			});
 			return shipDateToDisplay;
 		}
@@ -40,29 +27,42 @@ namespace domain.EcommShipping.Itrellis.Processors
 		public async Task<DateTime> GetShippingDateWithShipDate(int maxDaysToShip, bool doesShipOnWeekends, DateTime shipDate)
 		{
 			DateTime shipDateToDisplay = DateTime.Now;
-			//TO INCLUDE THE CURRENT DAY AS THE FIRST SHIPPING DAY WE HAVE TO DEDUCT A DAY FROM THE MAX DAYS TO SHIP.
-			maxDaysToShip--;
 			await Task.Run(() =>
 			{
-				if (doesShipOnWeekends)
-
-				{
-					DateTime startDate = shipDate;
-					DateTime expectedEndDate = startDate.AddDays(maxDaysToShip);
-					shipDateToDisplay = expectedEndDate;
-				}
-				else
-				{
-					DateTime startDate = shipDate;
-					DateTime expectedEndDate = startDate.AddDays(maxDaysToShip);
-					while (expectedEndDate.DayOfWeek == DayOfWeek.Saturday || expectedEndDate.DayOfWeek == DayOfWeek.Sunday)
-					{
-						expectedEndDate = expectedEndDate.AddDays(1);
-					}
-					shipDateToDisplay = expectedEndDate;
-				}
+				DateTime startDate = GetStartingShippingDate(shipDate, doesShipOnWeekends);
+				//TO INCLUDE THE CURRENT DAY AS THE FIRST SHIPPING DAY WE HAVE TO DEDUCT A DAY FROM THE MAX DAYS TO SHIP.
+				maxDaysToShip--;
+				DateTime expectedEndDate = startDate.AddDays(maxDaysToShip);
+				shipDateToDisplay = GetWorkingDays(startDate, expectedEndDate, doesShipOnWeekends);
 			});
 			return shipDateToDisplay;
+		}
+		private DateTime GetWorkingDays(DateTime from, DateTime to, bool doesShipOnWeekends)
+		{
+			if (doesShipOnWeekends)
+				return to;
+			else
+			{
+				for (var date = from; date <= to; date = date.AddDays(1))
+				{
+					if (date.DayOfWeek == DayOfWeek.Saturday || date.DayOfWeek == DayOfWeek.Sunday)
+						to = to.AddDays(1);
+				}
+			}
+			return to;
+		}
+		private DateTime GetStartingShippingDate(DateTime from, bool doesShipOnWeekends)
+		{
+			if (doesShipOnWeekends)
+				return from;
+			else
+			{
+				if (from.DayOfWeek == DayOfWeek.Saturday)
+					from = from.AddDays(2);
+				else if (from.DayOfWeek == DayOfWeek.Sunday)
+					from = from.AddDays(1);
+			}
+			return from;
 		}
 	}
 }
